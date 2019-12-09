@@ -9,6 +9,7 @@ import (
 )
 
 var Conf map[string]map[string]interface{}
+var Dir, Rdir string
 
 func init() {
 	Conf = make(map[string]map[string]interface{})
@@ -68,6 +69,7 @@ func init() {
 	} else {
 		fmt.Println(dir + "/conf/wechat.conf not found")
 		os.Exit(1)
-
 	}
+	Dir = dir
+	Rdir = Dir + "/run"
 }

@@ -18,6 +18,7 @@ const (
 )
 
 var (
+	ErrorApp        = errors.New("程序未运行")
 	ErrorSystem     = errors.New("系统异常")
 	ErrorParam      = errors.New("参数异常")
 	ErrorParseParam = errors.New("参数解析异常")
@@ -32,6 +33,8 @@ const (
 	ERROR_PARAM
 	ERROR_SYSTEM
 )
+
+const app = "wechat"
 
 func GetMessage(errno int) string {
 	switch errno {
