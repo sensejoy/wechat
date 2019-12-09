@@ -7,51 +7,24 @@ import (
 	"go.uber.org/zap"
 	"net/http"
 	"os"
-	"sort"
 	"time"
+	"wechat/controller"
 	"wechat/util"
 )
 
 var server *gin.Engine
 
 func init() {
+	gin.SetMode(gin.ReleaseMode)
 	server = gin.New()
 	server.Use(requestInit(), gin.Recovery(), log())
-	initRoute()
-}
-
-func initRoute() {
-	server.GET("/", sample)
-	server.GET("/wx/response", response)
+	controller.InitRoute(server)
 }
 
 func main() {
-	if err := server.Run(":8808"); err != nil {
+	if err := server.Run(fmt.Sprintf(":%d", util.Conf["server"]["port"].(int))); err != nil {
 		fmt.Println(err)
 		os.Exit(1)
-	}
-}
-
-func sample(c *gin.Context) {
-	c.JSON(util.StatusOK, gin.H{
-		"errno":  util.OK,
-		"errmsg": util.GetMessage(util.OK),
-	})
-}
-
-func response(c *gin.Context) {
-	signature := c.Query("signature")
-	echostr := c.Query("echostr")
-	timestamp := c.Query("timestamp")
-	nonce := c.Query("nonce")
-	str := []string{util.Wechat_Token, timestamp, nonce}
-	sort.Strings(str)
-	src := str[0] + str[1] + str[2]
-	check := util.Sha1(src)
-	if check == signature {
-		c.String(util.StatusOK, echostr)
-	} else {
-		c.String(util.StatusBadRequest, "bad params")
 	}
 }
 

@@ -10,11 +10,11 @@ var Logger *zap.Logger
 
 func init() {
 	hook := lumberjack.Logger{
-		Filename:   "log/wechat.log",
-		MaxSize:    1024,
-		MaxBackups: 100,
-		MaxAge:     10,
-		Compress:   true,
+		Filename:   Conf["log"]["Filename"].(string),
+		MaxSize:    Conf["log"]["MaxSize"].(int),
+		MaxBackups: Conf["log"]["MaxBackups"].(int),
+		MaxAge:     Conf["log"]["MaxAge"].(int),
+		Compress:   Conf["log"]["Compress"].(bool),
 	}
 	level := new(zapcore.Level)
 	if err := level.Set("debug"); err != nil {
