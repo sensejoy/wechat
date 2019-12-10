@@ -12,7 +12,7 @@ var command string
 
 func init() {
 	timestamp := time.Now().Format("2006-01-02-15:04:05")
-	command = "./wechat" + " &>log/run." + timestamp + " &"
+	command = util.Dir + "/" + util.App + " &>" + util.Dir + "/log/run." + timestamp + " &"
 }
 
 func main() {
@@ -26,6 +26,8 @@ func main() {
 		stop()
 	case "restart":
 		restart()
+	case "status":
+		status()
 	default:
 		help()
 	}
@@ -33,27 +35,27 @@ func main() {
 
 func help() {
 	fmt.Println("Usage:")
-	fmt.Println("	./control [start|stop|restart]")
+	fmt.Println("	" + util.Dir + "/control [start|stop|restart|status]")
 	os.Exit(0)
 }
 
 func start() {
 	if util.CheckRun() != nil {
-		fmt.Println("程序已经启动")
+		fmt.Println(util.App + "已经启动")
 		return
 	}
 	cmd := exec.Command("/bin/bash", "-c", command)
 	if err := cmd.Start(); err != nil {
-		fmt.Println("启动失败:", err)
+		fmt.Println(util.App+"启动失败:", err)
 	} else {
-		fmt.Println("程序启动成功")
+		fmt.Println(util.App + "启动成功")
 	}
 }
 func stop() {
 	if err := util.KillApp(); err != nil {
 		fmt.Println(err)
 	} else {
-		fmt.Println("程序成功退出")
+		fmt.Println(util.App + "成功退出")
 	}
 }
 func restart() {
@@ -61,4 +63,11 @@ func restart() {
 		fmt.Println(err)
 	}
 	start()
+}
+func status() {
+	if util.CheckRun() != nil {
+		fmt.Println(util.App + "运行中")
+	} else {
+		fmt.Println(util.App + "未启动")
+	}
 }

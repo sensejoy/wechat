@@ -16,7 +16,7 @@ func WritePid() error {
 		}
 	}
 	pid := os.Getpid()
-	filename := path.Join(Rdir, app+".pid")
+	filename := path.Join(Rdir, App+".pid")
 	file, err := os.OpenFile(filename, os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0666)
 	if err != nil {
 		return err
@@ -37,7 +37,7 @@ func CheckRun() *os.Process {
 	if err != nil {
 		return nil
 	}
-	if exe != Dir+"/"+app {
+	if !strings.Contains(exe, Dir+"/"+App) {
 		return nil
 	}
 	process, err := os.FindProcess(pid)
@@ -48,7 +48,7 @@ func CheckRun() *os.Process {
 }
 
 func getPid() int {
-	filename := path.Join(Rdir, app+".pid")
+	filename := path.Join(Rdir, App+".pid")
 	file, err := os.Open(filename)
 	if err != nil {
 		fmt.Println(err)

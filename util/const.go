@@ -34,7 +34,7 @@ const (
 	ERROR_SYSTEM
 )
 
-const app = "wechat"
+const App = "wechat"
 
 func GetMessage(errno int) string {
 	switch errno {
