@@ -8,7 +8,7 @@ import (
 )
 
 func main() {
-	url := fmt.Sprintf("https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid=%s&secret=%s", util.Conf["wechat"]["appid"], util.Conf["wechat"]["appsecret"])
+	url := fmt.Sprintf("https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid=%s&secret=%s", util.Conf["wechat"]["appId"], util.Conf["wechat"]["appSecret"])
 	req := util.Request{
 		Method:           util.GET,
 		Url:              url,

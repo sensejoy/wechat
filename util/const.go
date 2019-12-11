@@ -5,6 +5,35 @@ import (
 )
 
 const (
+	//消息类型
+	WechatText        = "text"
+	WechatImage       = "image"
+	WechatVoice       = "voice"
+	WechatMusic       = "music"
+	WechatVideo       = "video"
+	WechatShortVideo  = "shortvideo"
+	WechatLocation    = "location"
+	WechatLink        = "link"
+	WechatNews        = "news"
+	WechatMpNews      = "mpnews"
+	WechatMenu        = "msgmenu"
+	WechatCard        = "wxcard"
+	WechatMiniProgram = "miniprogrampage"
+
+	//输入状态
+	WechatCommandTyping       = "Typing"
+	WechatCommandCancelTyping = "CancelTyping"
+
+	//事件类型
+	WechatEventSubscribe   = "subscribe"
+	WechatEventUnsubscribe = "unsubscribe"
+	WechatEventScan        = "SCAN"
+	WechatEventLocation    = "LOCATION"
+	WechatEventClick       = "CLICK"
+	WechatEventView        = "VIEW"
+)
+
+const (
 	StatusOK                  = 200
 	StatusBadRequest          = 400
 	StatusUnauthorized        = 401

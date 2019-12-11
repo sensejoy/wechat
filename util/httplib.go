@@ -41,7 +41,7 @@ type Request struct {
 	ConnectTimeout   int         //connection timeout in millisecond, default 200ms
 	ReadWriteTimeout int         //read write timeout in millisecond, default 200ms
 	Type             int         //post type
-	Params           interface{} //different post params according to post type
+	Params           interface{} //different post params according to post type: form = map/ xml & json = []byte
 }
 
 type Response struct {
@@ -157,13 +157,13 @@ func check(req Request) (*Request, string, bool) {
 		request.Ssl = req.Ssl
 	}
 	if req.ConnectTimeout <= 0 {
-		request.ConnectTimeout = 200
+		request.ConnectTimeout = 5000
 	} else {
 		request.ConnectTimeout = req.ConnectTimeout
 	}
 
 	if req.ReadWriteTimeout <= 0 {
-		request.ReadWriteTimeout = 200
+		request.ReadWriteTimeout = 5000
 	} else {
 		request.ReadWriteTimeout = req.ReadWriteTimeout
 	}
@@ -204,15 +204,15 @@ func call(req *Request, res *Response, ch chan int, wg *sync.WaitGroup) {
 			request.Body = ioutil.NopCloser(strings.NewReader(body))
 			request.Header.Set("content-type", "application/x-www-form-urlencoded")
 		case XML:
-			param, _ := req.Params.(string)
+			param, _ := req.Params.([]byte)
 			request.ContentLength = int64(len(param))
 			request.Header.Set("content-type", "text/xml")
-			request.Body = ioutil.NopCloser(bytes.NewBuffer([]byte(param)))
+			request.Body = ioutil.NopCloser(bytes.NewBuffer(param))
 		case JSON:
-			param, _ := req.Params.(string)
+			param, _ := req.Params.([]byte)
 			request.ContentLength = int64(len(param))
 			request.Header.Set("content-type", "application/json")
-			request.Body = ioutil.NopCloser(bytes.NewBuffer([]byte(param)))
+			request.Body = ioutil.NopCloser(bytes.NewBuffer(param))
 		}
 	}
 	tr := &http.Transport{

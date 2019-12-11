@@ -34,7 +34,6 @@ func main() {
 
 func requestInit() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		c.Set("request_id", c.GetHeader("X_REQUEST_ID"))
 		c.Set("start", time.Now().UnixNano())
 		c.Next()
 	}
@@ -46,8 +45,7 @@ func log() gin.HandlerFunc {
 		start, _ := c.Get("start")
 		cost := (int)((end - start.(int64)) / 1000000)
 		r := c.Request
-		requestId, _ := c.Get("request_id")
-		util.Logger.Info("http request", zap.String("request_id", requestId.(string)), zap.Int("status", c.Writer.Status()), zap.String("client_ip", c.ClientIP()), zap.String("cost", fmt.Sprintf("%dms", cost)), zap.String("request", formatString(r)))
+		util.Logger.Info("http request", zap.String("request_id", c.GetHeader("X-REQUEST-ID")), zap.Int("status", c.Writer.Status()), zap.String("client_ip", c.ClientIP()), zap.String("cost", fmt.Sprintf("%dms", cost)), zap.String("request", formatString(r)))
 	}
 }
 

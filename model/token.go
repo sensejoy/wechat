@@ -25,8 +25,8 @@ func GetAccessToken() string {
 	conn := dao.RedisPool.Get()
 	defer conn.Close()
 	token, err := conn.Do("get", redisKey)
-	if err != nil {
-		return token.(string)
+	if err == nil {
+		return string(token.([]byte))
 	} else {
 		return ""
 	}

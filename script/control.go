@@ -12,7 +12,7 @@ var command string
 
 func init() {
 	timestamp := time.Now().Format("2006-01-02-15:04:05")
-	command = util.Dir + "/" + util.App + " &>" + util.Dir + "/log/run." + timestamp + " &"
+	command = util.Dir + "/" + util.App + " &>" + util.Dir + "/run/run." + timestamp + " &"
 }
 
 func main() {
