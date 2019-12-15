@@ -70,6 +70,7 @@ func stop() {
 func restart() {
 	if err := util.KillApp(); err != nil {
 		fmt.Println(err)
+		time.Sleep(time.Second)
 	}
 	start()
 }

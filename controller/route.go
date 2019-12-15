@@ -24,6 +24,8 @@ func InitRoute(server *gin.Engine) {
 	server.POST("/api/pc/checkscanqrcode", checkScanQrcode)
 	server.POST("/api/pc/bindaccount", bindAccount)
 	authed["/api/pc/bindaccount"] = struct{}{}
+	server.POST("/api/pc/updateaccount", updateAccount)
+	authed["/api/pc/updateaccount"] = struct{}{}
 }
 
 func auth() gin.HandlerFunc {

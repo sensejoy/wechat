@@ -47,6 +47,9 @@ func BindAccount(openId, name string, phone int64) (*Account, error) {
 	if err != nil {
 		return nil, err
 	}
+	if len(account.Name) != 0 {
+		return nil, errors.New("该手机号已被" + account.Name + "绑定!")
+	}
 	avatar, err := GetAccountWechatInfo(openId)
 	if err != nil {
 		return nil, err
@@ -71,7 +74,6 @@ func GetAccountWechatInfo(openId string) (string, error) {
 		Method: util.GET,
 		Url:    url,
 	}
-	fmt.Println(req)
 	res := util.Call(req)
 	if res.Status != util.StatusOK {
 		return "", util.ErrorHttpResponse
@@ -90,6 +92,21 @@ func GetAccountWechatInfo(openId string) (string, error) {
 		return "", errors.New("微信数据异常:" + msg)
 	}
 	return avatar.(string), nil
+}
+
+func UpdateAccount(openId, name string, phone int64) (*Account, error) {
+	account, err := GetAccountInfo(openId)
+	if err != nil {
+		return nil, err
+	}
+	account.Name = name
+	account.Phone = phone
+	_, err = dao.DB.NamedExec("UPDATE account SET name=:name, phone=:phone WHERE open_id=:open_id", account)
+	if err != nil {
+		util.Logger.Error("UpdateAccount fail", zap.String("account", account.String()), zap.String("error", err.Error()))
+		return nil, err
+	}
+	return account, nil
 }
 
 func (account Account) String() string {
