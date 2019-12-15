@@ -47,6 +47,15 @@ func start() {
 	cmd := exec.Command("/bin/bash", "-c", command)
 	if err := cmd.Start(); err != nil {
 		fmt.Println(util.App+"启动失败:", err)
+	}
+	ch := make(chan struct{})
+	go func() {
+		time.Sleep(time.Second * 2)
+		ch <- struct{}{}
+	}()
+	<-ch
+	if util.CheckRun() == nil {
+		fmt.Println(util.App + "启动异常，请查看运行日志")
 	} else {
 		fmt.Println(util.App + "启动成功")
 	}

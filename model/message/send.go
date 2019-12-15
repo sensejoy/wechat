@@ -68,7 +68,7 @@ func SendTemplateMessage(openId, templateId, url string, param map[string]interf
 	} else {
 		var result interface{}
 		if nil != json.Unmarshal([]byte(res.Body), &result) {
-			err = errors.New("invalid response")
+			err = util.ErrorHttpResponse
 		} else {
 			data := result.(map[string]interface{})
 			if id, ok := data["msgid"]; ok {

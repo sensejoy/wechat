@@ -3,10 +3,13 @@ package util
 import (
 	"bytes"
 	"crypto/tls"
+	"io"
 	"io/ioutil"
+	"mime/multipart"
 	"net"
 	"net/http"
 	"net/url"
+	"os"
 	"strings"
 	"sync"
 	"time"
@@ -25,23 +28,21 @@ const (
 
 //POST TYPE
 const (
-	FORM = iota + 1 //x-www-form-urlencoded
-	DATA            //multipart/form-data
-	JSON            //application/json
-	XML             //text/xml
+	FORM     = iota + 1 //x-www-form-urlencoded
+	FORMDATA            //multipart/form-data
+	JSON                //application/json
+	XML                 //text/xml
 )
-
-type Hashmap map[string]string
 
 type Request struct {
 	Method           string //support GET & POST only for now
 	Url              string
-	Headers          Hashmap
+	Headers          map[string]string
 	Ssl              bool        //whether https request
 	ConnectTimeout   int         //connection timeout in millisecond, default 200ms
 	ReadWriteTimeout int         //read write timeout in millisecond, default 200ms
 	Type             int         //post type
-	Params           interface{} //different post params according to post type: form = map/ xml & json = []byte
+	Params           interface{} //different post params according to post type: form&data = map/ xml&json = []byte
 }
 
 type Response struct {
@@ -141,14 +142,88 @@ func check(req Request) (*Request, string, bool) {
 	if req.Method == POST {
 		switch req.Type {
 		case FORM:
-		case DATA:
+			request.Type = req.Type
+			params, ok := req.Params.(map[string]string)
+			if !ok {
+				return nil, "wrong form params", false
+			}
+			param := url.Values{}
+			for idx, val := range params {
+				param.Add(idx, val)
+			}
+			body := param.Encode()
+			request.Params = body
 		case JSON:
+			request.Type = req.Type
+			if _, ok := req.Params.([]byte); !ok {
+				return nil, "wrong json params", false
+			}
+			request.Params = req.Params
 		case XML:
+			request.Type = req.Type
+			if _, ok := req.Params.([]byte); !ok {
+				return nil, "wrong xml params", false
+			}
+			request.Params = req.Params
+		case FORMDATA:
+			request.Type = req.Type
+			params, ok := req.Params.(map[string]string)
+			if !ok {
+				return nil, "wrong form-data params", false
+			}
+			if nameField, ok := params["nameField"]; ok {
+				//上传文件时必须包含nameField & fileName & filePath
+				filePath, ok := params["filePath"]
+				if !ok {
+					return nil, "wrong form-data params: no filepath", false
+				}
+				fileName, ok := params["fileName"]
+				if !ok {
+					return nil, "wrong form-data params: no filename", false
+				}
+				if len(nameField) == 0 {
+					return nil, "wrong form-data params: nameField is invalid", false
+				}
+				if len(fileName) == 0 {
+					return nil, "wrong form-data params: fileName is invalid", false
+				}
+				if len(filePath) == 0 {
+					return nil, "wrong form-data params: filePath is invalid", false
+				}
+				body := new(bytes.Buffer)
+				writer := multipart.NewWriter(body)
+				form, err := writer.CreateFormFile(nameField, fileName)
+				if err != nil {
+					return nil, err.Error(), false
+				}
+
+				path := filePath + "/" + fileName
+				file, err := os.Open(path)
+				if err != nil {
+					return nil, err.Error(), false
+				}
+				_, err = io.Copy(form, file)
+				if err != nil {
+					return nil, err.Error(), false
+				}
+				for key, val := range params {
+					if err = writer.WriteField(key, val); err != nil {
+						return nil, err.Error(), false
+					}
+				}
+				err = writer.Close()
+				if err != nil {
+					return nil, err.Error(), false
+				}
+				if nil == request.Headers {
+					request.Headers = make(map[string]string)
+				}
+				request.Headers["content-type"] = writer.FormDataContentType()
+				request.Params = body
+			}
 		default:
 			return nil, "post type invalid", false
 		}
-		request.Type = req.Type
-		request.Params = req.Params
 	}
 
 	if strings.Contains(req.Url, "https://") {
@@ -194,14 +269,9 @@ func call(req *Request, res *Response, ch chan int, wg *sync.WaitGroup) {
 	if req.Method == POST {
 		switch req.Type {
 		case FORM:
-			params, _ := req.Params.(Hashmap)
-			param := url.Values{}
-			for idx, val := range params {
-				param.Add(idx, val)
-			}
-			body := param.Encode()
-			request.ContentLength = int64(len(body))
-			request.Body = ioutil.NopCloser(strings.NewReader(body))
+			param, _ := req.Params.(string)
+			request.ContentLength = int64(len(param))
+			request.Body = ioutil.NopCloser(strings.NewReader(param))
 			request.Header.Set("content-type", "application/x-www-form-urlencoded")
 		case XML:
 			param, _ := req.Params.([]byte)
@@ -213,6 +283,10 @@ func call(req *Request, res *Response, ch chan int, wg *sync.WaitGroup) {
 			request.ContentLength = int64(len(param))
 			request.Header.Set("content-type", "application/json")
 			request.Body = ioutil.NopCloser(bytes.NewBuffer(param))
+		case FORMDATA:
+			param, _ := req.Params.(*bytes.Buffer)
+			request.ContentLength = int64(param.Len())
+			request.Body = ioutil.NopCloser(param)
 		}
 	}
 	tr := &http.Transport{
