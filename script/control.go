@@ -56,6 +56,7 @@ func start() {
 	<-ch
 	if util.CheckRun() == nil {
 		fmt.Println(util.App + "启动异常，请查看运行日志")
+		os.Exit(1)
 	} else {
 		fmt.Println(util.App + "启动成功")
 	}
@@ -63,13 +64,17 @@ func start() {
 func stop() {
 	if err := util.KillApp(); err != nil {
 		fmt.Println(err)
+		os.Exit(1)
 	} else {
 		fmt.Println(util.App + "成功退出")
 	}
 }
 func restart() {
-	if err := util.KillApp(); err != nil {
-		fmt.Println(err)
+	if util.CheckRun() != nil {
+		if err := util.KillApp(); err != nil {
+			fmt.Println(err)
+			os.Exit(1)
+		}
 		time.Sleep(time.Second)
 	}
 	start()
