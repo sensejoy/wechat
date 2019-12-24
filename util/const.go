@@ -46,6 +46,12 @@ const (
 	WechatTicketExpire = 3600 //1小时有效
 
 	WechatToken = "wechat_token"
+
+	WechatPlatformManager  = 1
+	WechatPlatformOperator = 2
+
+	OfficialAccount = 1
+	MiniProgram     = 2
 )
 
 const (
@@ -62,16 +68,18 @@ const (
 )
 
 var (
-	ErrorApp            = errors.New("程序未运行")
-	ErrorSystem         = errors.New("系统异常")
-	ErrorParam          = errors.New("参数异常")
-	ErrorParseParam     = errors.New("参数解析异常")
-	ErrorInvalidType    = errors.New("文件格式不正确")
-	ErrorFileNotFound   = errors.New("文件不存在")
-	ErrorFileTooLarge   = errors.New("文件尺寸太大")
-	ErrorHttpResponse   = errors.New("错误的响应数据")
-	ErrorQrcodeNotScan  = errors.New("二维码未扫描")
-	ErrorWechatResponse = errors.New("微信请求异常请重试")
+	ErrorApp             = errors.New("程序未运行")
+	ErrorSystem          = errors.New("系统异常")
+	ErrorParam           = errors.New("参数异常")
+	ErrorParseParam      = errors.New("参数解析异常")
+	ErrorInvalidType     = errors.New("文件格式不正确")
+	ErrorFileNotFound    = errors.New("文件不存在")
+	ErrorFileTooLarge    = errors.New("文件尺寸太大")
+	ErrorHttpResponse    = errors.New("错误的响应数据")
+	ErrorQrcodeNotScan   = errors.New("二维码未扫描")
+	ErrorWechatResponse  = errors.New("微信请求异常请重试")
+	ErrorPhoneExist      = errors.New("手机号已经存在")
+	ErrorUpdateForbidden = errors.New("因管理员仅余一名，当前操作被禁止")
 )
 
 const (

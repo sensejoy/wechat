@@ -7,7 +7,7 @@ import (
 	"go.uber.org/zap"
 	"net/http"
 	"time"
-	"wechat/model/user"
+	"wechat/model/officialAccount/user"
 	"wechat/util"
 )
 
@@ -16,16 +16,26 @@ var authed = make(map[string]struct{})
 func InitRoute(server *gin.Engine) {
 	server.Use(requestInit(), auth(), gin.Recovery(), log())
 	server.GET("/", sample)
-	server.GET("/wx/response", response)
-	server.POST("/wx/response", callback)
-	server.GET("/api/pc/accountinfo", accountInfo)
+	server.GET("/wx/response", response)  //微信验证
+	server.POST("/wx/response", callback) //微信回调
+
+	server.GET("/api/pc/loginticket", loginTicket)          //后台登录获取二维码 ticket
+	server.POST("/api/pc/checkscanqrcode", checkScanQrcode) //校验扫码情况
+
+	server.GET("/api/pc/accountinfo", accountInfo)      //获取账户信息,需要登录
+	server.POST("/api/pc/bindaccount", bindAccount)     //绑定账户，需要登录
+	server.POST("/api/pc/updateaccount", updateAccount) //更新账户信息，需要登录
+
+	server.POST("/api/pc/accountlist", accountList)             //查看账户列表，需要登录
+	server.POST("/api/pc/updateaccountbyid", updateAccountById) //根据账户 id 更新账户信息，需要管理员权限
+	server.POST("/api/pc/addaccount", addAccount)               //添加账户，需要管理员权限
+
 	authed["/api/pc/accountinfo"] = struct{}{}
-	server.GET("/api/pc/loginticket", loginTicket)
-	server.POST("/api/pc/checkscanqrcode", checkScanQrcode)
-	server.POST("/api/pc/bindaccount", bindAccount)
 	authed["/api/pc/bindaccount"] = struct{}{}
-	server.POST("/api/pc/updateaccount", updateAccount)
 	authed["/api/pc/updateaccount"] = struct{}{}
+	authed["/api/pc/accountlist"] = struct{}{}
+	authed["/api/pc/updateaccountbyid"] = struct{}{}
+	authed["/api/pc/addaccount"] = struct{}{}
 }
 
 func auth() gin.HandlerFunc {

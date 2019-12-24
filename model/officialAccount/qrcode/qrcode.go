@@ -92,7 +92,7 @@ func createQrCode(param qrCodePostInfo) (ticket string, err error) {
 	data, _ := json.Marshal(param)
 	req := util.Request{
 		Method: util.POST,
-		Url:    "https://api.weixin.qq.com/cgi-bin/qrcode/create?access_token=" + model.GetAccessToken(),
+		Url:    "https://api.weixin.qq.com/cgi-bin/qrcode/create?access_token=" + model.GetAccessToken(util.OfficialAccount),
 		Type:   util.JSON,
 		Params: data,
 	}

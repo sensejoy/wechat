@@ -3,7 +3,7 @@ package controller
 import (
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
-	"wechat/model/qrcode"
+	"wechat/model/officialAccount/qrcode"
 	"wechat/util"
 )
 

@@ -16,7 +16,7 @@ func SendCustomMessage(msg map[string]interface{}) error {
 	data, _ := json.Marshal(msg)
 	req := util.Request{
 		Method: util.POST,
-		Url:    "https://api.weixin.qq.com/cgi-bin/message/custom/send?access_token=" + model.GetAccessToken(),
+		Url:    "https://api.weixin.qq.com/cgi-bin/message/custom/send?access_token=" + model.GetAccessToken(util.OfficialAccount),
 		Type:   util.JSON,
 		Params: data,
 	}
@@ -58,7 +58,7 @@ func SendTemplateMessage(openId, templateId, url string, param map[string]interf
 	data, _ := json.Marshal(params)
 	req := util.Request{
 		Method: util.POST,
-		Url:    "https://api.weixin.qq.com/cgi-bin/message/template/send?access_token=" + model.GetAccessToken(),
+		Url:    "https://api.weixin.qq.com/cgi-bin/message/template/send?access_token=" + model.GetAccessToken(util.OfficialAccount),
 		Type:   util.JSON,
 		Params: data,
 	}

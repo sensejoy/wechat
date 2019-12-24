@@ -68,10 +68,15 @@ func init() {
 		"ConnMaxLifetime": conf.Section("redis").Key("connMaxLifetime").RangeInt(0, 0, 3600),
 	}
 
-	Conf["wechat"] = map[string]interface{}{
-		"appId":     conf.Section("wechat").Key("appId").MustString(""),
-		"appSecret": conf.Section("wechat").Key("appSecret").MustString(""),
-		"token":     conf.Section("wechat").Key("token").MustString(""),
+	Conf["officialAccount"] = map[string]interface{}{
+		"appId":     conf.Section("officialAccount").Key("appId").MustString(""),
+		"appSecret": conf.Section("officialAccount").Key("appSecret").MustString(""),
+		"token":     conf.Section("officialAccount").Key("token").MustString(""),
+	}
+
+	Conf["miniProgram"] = map[string]interface{}{
+		"appId":     conf.Section("miniProgram").Key("appId").MustString(""),
+		"appSecret": conf.Section("miniProgram").Key("appSecret").MustString(""),
 	}
 	Dir = dir
 	Rdir = Dir + "/run"

@@ -22,6 +22,62 @@ type Account struct {
 	Update string `json:"update_time" db:"update_time"`
 }
 
+func AddAccount(name string, phone int64, role, status int) (*Account, error) {
+	account := new(Account)
+	dao.DB.Get(account, "SELECT * FROM account WHERE phone=?", phone)
+	if account.Phone != 0 {
+		util.Logger.Error("AddAccount fail, phone exist", zap.Int64("phone", phone))
+		return nil, util.ErrorPhoneExist
+	}
+	account.Name = name
+	account.Phone = phone
+	account.Role = role
+	account.Status = status
+	_, err := dao.DB.NamedExec("INSERT INTO account(name,phone,role,status) VALUES(:name, :phone, :role, :status)", account)
+	if err != nil {
+		return nil, err
+	}
+	return account, nil
+}
+
+func GetAccountList(name string, phone int64, role, status, pageNo, pageSize int) (int, []Account, error) {
+	//获取总数
+	var total int
+	sql := " FROM account WHERE 1=1"
+	if len(name) > 0 {
+		sql += " AND name like '%" + name + "%'"
+	}
+	if phone != 0 {
+		sql += fmt.Sprintf(" AND phone = %d", phone)
+	}
+	if status >= 0 {
+		sql += fmt.Sprintf(" AND status = %d", status)
+	}
+	if role >= 0 {
+		sql += fmt.Sprintf(" AND role = %d", role)
+	}
+	err := dao.DB.Get(&total, "SELECT count(*)"+sql)
+	if err != nil {
+		util.Logger.Error("GetAccountList total fail", zap.String("error", err.Error()))
+		return 0, nil, err
+	}
+
+	//分页查询
+	start := (pageNo - 1) * pageSize
+	if start > total {
+		util.Logger.Error("GetAccountList param error", zap.Int("pageNo", pageNo), zap.Int("pageSize", pageSize), zap.Int("total", total))
+		return 0, nil, util.ErrorParam
+	}
+	accounts := []Account{}
+	sql = "SELECT * " + sql + fmt.Sprintf(" limit %d, %d", start, pageSize)
+	err = dao.DB.Select(&accounts, sql)
+	if err != nil {
+		util.Logger.Error("GetAccountList fail", zap.Int("start", start), zap.Int("pageSize", pageSize), zap.String("error", err.Error()))
+		return 0, nil, err
+	}
+	return total, accounts, nil
+}
+
 func GetAccountInfo(openId string) (*Account, error) {
 	account := &Account{}
 	err := dao.DB.Get(account, "SELECT * FROM account WHERE open_id=? and status = 1", openId)
@@ -34,7 +90,7 @@ func GetAccountInfo(openId string) (*Account, error) {
 
 func GetAccountInfoByPhone(phone int64) (*Account, error) {
 	account := &Account{}
-	err := dao.DB.Get(account, "SELECT * FROM account WHERE phone=? and status = 1", phone)
+	err := dao.DB.Get(account, "SELECT * FROM account WHERE phone=? and status = 1 limit 1", phone)
 	if err != nil {
 		util.Logger.Error("GetAccountInfo fail", zap.Int64("phone", phone), zap.String("error", err.Error()))
 		return nil, err
@@ -47,7 +103,7 @@ func BindAccount(openId, name string, phone int64) (*Account, error) {
 	if err != nil {
 		return nil, err
 	}
-	if len(account.Name) != 0 {
+	if len(account.OpenId) != 0 {
 		return nil, errors.New("该手机号已被" + account.Name + "绑定!")
 	}
 	avatar, err := GetAccountWechatInfo(openId)
@@ -69,7 +125,7 @@ func GetAccountWechatInfo(openId string) (string, error) {
 	if len(openId) == 0 {
 		return "", util.ErrorParam
 	}
-	url := fmt.Sprintf("https://api.weixin.qq.com/cgi-bin/user/info?access_token=%s&openid=%s&lang=zh_CN", model.GetAccessToken(), openId)
+	url := fmt.Sprintf("https://api.weixin.qq.com/cgi-bin/user/info?access_token=%s&openid=%s&lang=zh_CN", model.GetAccessToken(util.OfficialAccount), openId)
 	req := util.Request{
 		Method: util.GET,
 		Url:    url,
@@ -92,6 +148,41 @@ func GetAccountWechatInfo(openId string) (string, error) {
 		return "", errors.New("微信数据异常:" + msg)
 	}
 	return avatar.(string), nil
+}
+
+func UpdateAccountById(id int64, name string, phone int64, role, status int) (*Account, error) {
+	account := new(Account)
+	err := dao.DB.Get(account, "SELECT * FROM account WHERE id=?", id)
+	if err != nil {
+		util.Logger.Error("UpdateAccountById fail", zap.Int64("id", id), zap.String("error", err.Error()))
+		return nil, err
+	}
+	if len(name) != 0 {
+		account.Name = name
+	}
+	if phone != 0 {
+		account.Phone = phone
+	}
+	if status != -1 {
+		account.Status = status
+	}
+	if role != -1 {
+		account.Role = role
+	}
+	//避免误操作
+	if account.Status != 1 || account.Role != 1 {
+		var total int
+		dao.DB.Get(&total, "SELECT COUNT(*) FORM account WHERE role = 1 and status = 1")
+		if total <= 1 {
+			return nil, util.ErrorUpdateForbidden
+		}
+	}
+	_, err = dao.DB.NamedExec("UPDATE account SET name=:name, phone=:phone, role =:role, status=:status WHERE id=:id", account)
+	if err != nil {
+		util.Logger.Error("UpdateAccountById fail", zap.String("account", account.String()), zap.String("error", err.Error()))
+		return nil, err
+	}
+	return account, nil
 }
 
 func UpdateAccount(openId, name string, phone int64) (*Account, error) {
