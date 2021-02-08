@@ -11,7 +11,14 @@ import (
 	"wechat/util"
 )
 
-var authed = make(map[string]struct{})
+var authed = map[string]struct{}{
+	"/api/pc/accountinfo": struct{}{},
+	"/api/pc/bindaccount": struct{}{},
+	"/api/pc/updateaccount": struct{}{},
+	"/api/pc/accountlist": struct{}{},
+	"/api/pc/updateaccountbyid": struct{}{},
+	"/api/pc/addaccount": struct{}{},
+}
 
 func InitRoute(server *gin.Engine) {
 	server.Use(requestInit(), auth(), gin.Recovery(), log())
@@ -30,12 +37,6 @@ func InitRoute(server *gin.Engine) {
 	server.POST("/api/pc/updateaccountbyid", updateAccountById) //根据账户 id 更新账户信息，需要管理员权限
 	server.POST("/api/pc/addaccount", addAccount)               //添加账户，需要管理员权限
 
-	authed["/api/pc/accountinfo"] = struct{}{}
-	authed["/api/pc/bindaccount"] = struct{}{}
-	authed["/api/pc/updateaccount"] = struct{}{}
-	authed["/api/pc/accountlist"] = struct{}{}
-	authed["/api/pc/updateaccountbyid"] = struct{}{}
-	authed["/api/pc/addaccount"] = struct{}{}
 }
 
 func auth() gin.HandlerFunc {
